@@ -186,21 +186,3 @@ git checkout -b feature/your-feature-name
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
-
-- F-16 Fighting Falcon design inspiration
-- Typography and color scheme optimization
-- Game mechanics inspired by classic arcade shooters
-- Community feedback and testing
-
-## 📞 Contact
-
-- **Developer**: Ceyhun2056
-- **Repository**: [GitHub - Typing-game](https://github.com/Ceyhun2056/Typing-game)
-- **Issues**: [Report bugs or request features](https://github.com/Ceyhun2056/Typing-game/issues)
-
----
-
-**Ready for takeoff? Start typing and defend the skies! ✈️💨**
-
-![Game Stats](https://img.shields.io/badge/Difficulty-Progressive-orange) ![Language](https://img.shields.io/badge/Language-JavaScript-yellow) ![License](https://img.shields.io/badge/License-MIT-green)
