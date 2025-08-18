@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>F-16 Fighter Typing Game</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="gameArea">
+            <div id="player" class="helicopter"></div>
+            <div id="score">Score: 0</div>
+            <div id="lives">Lives: 3</div>
+            <div id="currentWord"></div>
+            <div id="enemies"></div>
+            <div id="explosions"></div>
+        </div>
+        
+        <div id="gameMenu" class="menu">
+            <h1>F-16 Fighting Falcon Battle</h1>
+            <p>Type the words to defeat enemy F-16 fighters!</p>
+            <button id="startButton">Start Game</button>
+            <div id="instructions">
+                <h3>How to Play:</h3>
+                <ul>
+                    <li>Enemy F-16 fighters will appear with words</li>
+                    <li>Type the complete word and press Enter</li>
+                    <li>Words will highlight as you type them</li>
+                    <li>Don't let enemies reach your base!</li>
+                    <li>You have 3 lives</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div id="gameOver" class="menu hidden">
+            <h1>Game Over!</h1>
+            <p id="finalScore">Final Score: 0</p>
+            <button id="restartButton">Play Again</button>
+        </div>
+    </div>
+    
+    <div id="inputDisplay"></div>
+    
+    <script src="js/words.js"></script>
+    <script src="js/game.js"></script>
+</body>
+</html>

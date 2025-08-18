@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Outer explosion -->
+  <circle cx="50" cy="50" r="45" fill="#FF5722" opacity="0.8"/>
+  
+  <!-- Middle explosion -->
+  <circle cx="50" cy="50" r="35" fill="#FF9800" opacity="0.9"/>
+  
+  <!-- Inner explosion -->
+  <circle cx="50" cy="50" r="25" fill="#FFC107"/>
+  
+  <!-- Core -->
+  <circle cx="50" cy="50" r="15" fill="#FFEB3B"/>
+  
+  <!-- Explosion spikes -->
+  <polygon points="50,5 55,20 50,15 45,20" fill="#FF5722"/>
+  <polygon points="95,50 80,55 85,50 80,45" fill="#FF5722"/>
+  <polygon points="50,95 45,80 50,85 55,80" fill="#FF5722"/>
+  <polygon points="5,50 20,45 15,50 20,55" fill="#FF5722"/>
+  
+  <!-- Diagonal spikes -->
+  <polygon points="79,21 69,31 74,26 64,36" fill="#FF9800"/>
+  <polygon points="79,79 64,64 74,74 69,69" fill="#FF9800"/>
+  <polygon points="21,79 36,64 26,74 31,69" fill="#FF9800"/>
+  <polygon points="21,21 31,31 26,26 36,36" fill="#FF9800"/>
+  
+  <!-- Smoke particles -->
+  <circle cx="30" cy="25" r="3" fill="#666" opacity="0.6"/>
+  <circle cx="70" cy="30" r="4" fill="#666" opacity="0.5"/>
+  <circle cx="75" cy="65" r="3" fill="#666" opacity="0.7"/>
+  <circle cx="25" cy="70" r="2" fill="#666" opacity="0.8"/>
+</svg>
