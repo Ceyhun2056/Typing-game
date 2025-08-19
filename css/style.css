@@ -297,7 +297,6 @@ body {
         padding: 12px 24px;
         font-size: 1.2em;
     }
-    
     #currentWord {
         font-size: 16px;
         padding: 10px 20px;
@@ -306,5 +305,370 @@ body {
     #inputDisplay {
         font-size: 16px;
         padding: 8px 16px;
+    }
+}
+
+/* === NEW FEATURES STYLING === */
+
+/* Menu Buttons Layout */
+.menu-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.menu-buttons button {
+    padding: 12px 24px;
+    font-size: 1.1em;
+    background: linear-gradient(45deg, #2196F3, #1976D2);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: bold;
+}
+
+.menu-buttons button:hover {
+    background: linear-gradient(45deg, #1976D2, #1565C0);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+/* Challenge UI Overlay */
+.challenge-overlay {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 20px;
+    border-radius: 10px;
+    z-index: 25;
+    min-width: 200px;
+}
+
+.challenge-overlay div {
+    margin: 5px 0;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+/* Statistics Display */
+.stats-overlay {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    z-index: 25;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.stats-overlay div {
+    padding: 5px 10px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.stats-overlay #comboDisplay {
+    background: rgba(255, 215, 0, 0.2);
+    color: #FFD700;
+    border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.stats-overlay .pause-btn {
+    background: rgba(255, 69, 0, 0.8);
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: bold;
+    transition: all 0.2s;
+}
+
+.stats-overlay .pause-btn:hover {
+    background: rgba(255, 69, 0, 1);
+    transform: scale(1.05);
+}
+
+.stats-overlay .pause-btn.paused {
+    background: rgba(34, 139, 34, 0.8);
+}
+
+.stats-overlay .pause-btn.paused:hover {
+    background: rgba(34, 139, 34, 1);
+}
+
+/* Combo Notification Styles */
+.combo-notification {
+    animation: comboFloat 2s ease-out forwards;
+    pointer-events: none;
+}
+
+.combo-text {
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.combo-bonus {
+    font-size: 0.9em;
+    opacity: 0.8;
+}
+
+@keyframes comboFloat {
+    0% {
+        transform: translateX(-50%) translateY(0) scale(0.5);
+        opacity: 0;
+    }
+    20% {
+        transform: translateX(-50%) translateY(-10px) scale(1.2);
+        opacity: 1;
+    }
+    40% {
+        transform: translateX(-50%) translateY(-20px) scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: translateX(-50%) translateY(-50px) scale(0.8);
+        opacity: 0;
+    }
+}
+
+/* Progress Save System Styles */
+.progress-stats {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    padding: 20px;
+    margin: 20px 0;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.progress-stats h3 {
+    color: #FFD700;
+    text-align: center;
+    margin-bottom: 15px;
+    font-size: 20px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+}
+
+.stat-item {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 8px 12px;
+    border-radius: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.stat-label {
+    font-size: 12px;
+    color: #CCCCCC;
+}
+
+.stat-value {
+    font-weight: bold;
+    color: #FFD700;
+    font-size: 14px;
+}
+
+/* Achievement Notification Styles */
+.achievement-notification {
+    font-family: Arial, sans-serif;
+}
+
+.achievement-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.achievement-content {
+    flex: 1;
+}
+
+.achievement-title {
+    font-weight: bold;
+    font-size: 16px;
+    margin-bottom: 2px;
+}
+
+.achievement-description {
+    font-size: 12px;
+    opacity: 0.8;
+}
+
+@keyframes achievementSlide {
+    0% {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    10% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    90% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    100% {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+/* Final Stats Display */
+.final-stats-content {
+    margin-top: 15px;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stat-row:last-child {
+    border-bottom: none;
+}
+
+.new-record {
+    text-align: center;
+    color: #FFD700;
+    font-weight: bold;
+    font-size: 18px;
+    margin-top: 10px;
+    padding: 10px;
+    background: rgba(255, 215, 0, 0.2);
+    border-radius: 6px;
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+/* Custom Dictionary Panel */
+#customDictionaryPanel input[type="file"] {
+    margin: 20px 0;
+    padding: 10px;
+    border: 2px solid #ddd;
+    border-radius: 5px;
+    background: white;
+    color: #333;
+    font-size: 16px;
+}
+
+.category-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.category-buttons button {
+    padding: 8px 16px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.3s ease;
+}
+
+.category-buttons button:hover {
+    background: #45a049;
+}
+
+/* Statistics Panel Content */
+#statisticsContent {
+    text-align: left;
+    margin: 20px 0;
+}
+
+#statisticsContent p {
+    margin: 10px 0;
+    font-size: 1.1em;
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+}
+
+#statisticsContent strong {
+    color: #FFD700;
+}
+
+/* Enhanced Game Over Screen */
+#finalStats {
+    margin: 20px 0;
+    text-align: left;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 15px;
+    border-radius: 8px;
+}
+
+#finalStats p {
+    margin: 5px 0;
+    font-size: 1em;
+}
+
+/* Challenge Type Indicator */
+#challengeType {
+    color: #FFD700;
+    font-size: 20px;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+/* Responsive adjustments for new features */
+@media (max-width: 768px) {
+    .menu-buttons {
+        gap: 10px;
+    }
+    
+    .menu-buttons button {
+        padding: 10px 20px;
+        font-size: 1em;
+    }
+    
+    .stats-overlay {
+        flex-direction: column;
+        gap: 5px;
+        top: 10px;
+        font-size: 12px;
+    }
+    
+    .challenge-overlay {
+        top: 60px;
+        right: 10px;
+        padding: 15px;
+        min-width: 150px;
+    }
+    
+    .category-buttons {
+        justify-content: center;
     }
 }

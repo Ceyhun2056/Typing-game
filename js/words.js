@@ -16,6 +16,21 @@ const WORD_LISTS = {
         'thunder', 'mystery', 'journey', 'victory', 'freedom', 'machine', 'science', 'crystal', 'destiny', 'harmony',
         'ancient', 'magical', 'digital', 'cosmic', 'frozen', 'golden', 'silver', 'marble', 'diamond', 'emerald',
         'warrior', 'hunter', 'wizard', 'ranger', 'paladin', 'archer', 'rogue', 'mage', 'healer', 'guardian'
+    ],
+    
+    // New specialized word lists
+    programming: [
+        'function', 'variable', 'array', 'object', 'method', 'class', 'interface', 'boolean',
+        'string', 'integer', 'loop', 'condition', 'algorithm', 'database', 'framework', 'library',
+        'debug', 'compile', 'syntax', 'logic', 'binary', 'recursive', 'parameter', 'constructor',
+        'inheritance', 'polymorphism', 'encapsulation', 'abstraction', 'callback', 'promise'
+    ],
+    
+    science: [
+        'molecule', 'atom', 'gravity', 'energy', 'matter', 'physics', 'chemistry', 'biology',
+        'electron', 'proton', 'neutron', 'element', 'compound', 'reaction', 'catalyst', 'enzyme',
+        'ecosystem', 'organism', 'genetics', 'evolution', 'photosynthesis', 'mitochondria',
+        'hypothesis', 'experiment', 'observation', 'analysis', 'conclusion', 'theory'
     ]
 };
 
