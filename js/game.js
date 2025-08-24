@@ -3,7 +3,7 @@ class F16TypingGame {
     constructor() {
         this.gameState = 'menu'; // 'menu', 'playing', 'gameOver', 'challenge'
         this.score = 0;
-        this.lives = 3;
+        this.lives = 5;
         this.level = 1;
         this.enemies = [];
         this.explosions = [];
@@ -14,6 +14,57 @@ class F16TypingGame {
         this.enemySpeed = 1;
         this.spawnRate = 2000; // milliseconds
         this.maxEnemies = 5;
+        
+        // Boss System
+        this.bosses = [];
+        this.currentBoss = null;
+        this.bossSpawnThreshold = 500; // Spawn boss every 500 points
+        this.lastBossScore = 0; // Track when last boss was spawned
+        
+        // Enemy Variety System
+        this.enemyTypes = {
+            scout: {
+                name: 'Scout',
+                speed: 2, // Faster than normal
+                health: 1,
+                size: 0.7, // Smaller
+                words: ['GO', 'FLY', 'RUN', 'HIT', 'ACE', 'JET', 'SKY', 'AIR'],
+                color: '#00ff00', // Green
+                points: 15, // Higher points for difficulty
+                spawnWeight: 25 // 25% spawn chance
+            },
+            standard: {
+                name: 'Standard Fighter',
+                speed: 1, // Normal speed
+                health: 1,
+                size: 1, // Normal size
+                words: ['FIRE', 'WING', 'RADAR', 'PILOT', 'SPEED', 'POWER', 'ARMOR', 'FLIGHT'],
+                color: '#ff1744', // Red
+                points: 10,
+                spawnWeight: 40 // 40% spawn chance
+            },
+            heavy: {
+                name: 'Heavy Bomber',
+                speed: 0.5, // Slower
+                health: 2, // Takes 2 hits
+                size: 1.4, // Larger
+                words: ['DESTROYER', 'FORTRESS', 'THUNDER', 'MASSIVE', 'CRUSHING', 'BOMBARD', 'ASSAULT'],
+                color: '#9c27b0', // Purple
+                points: 25, // More points for tankiness
+                spawnWeight: 20 // 20% spawn chance
+            },
+            stealth: {
+                name: 'Stealth Fighter',
+                speed: 1.2, // Slightly faster
+                health: 1,
+                size: 0.9, // Slightly smaller
+                words: ['SHADOW', 'GHOST', 'HIDDEN', 'STEALTH', 'PHANTOM', 'COVERT', 'SILENT'],
+                color: '#424242', // Dark gray
+                points: 20,
+                spawnWeight: 15, // 15% spawn chance
+                special: 'stealth' // Special ability
+            }
+        };
         
         // Combo/Streak System
         this.combo = 0;
@@ -175,7 +226,7 @@ class F16TypingGame {
     startGame() {
         this.gameState = 'playing';
         this.score = 0;
-        this.lives = 3;
+        this.lives = 5;
         this.level = 1;
         this.enemies = [];
         this.explosions = [];
@@ -186,6 +237,11 @@ class F16TypingGame {
         this.combo = 0;
         this.maxCombo = 0;
         this.comboMultiplier = 1;
+        
+        // Initialize boss system
+        this.bosses = [];
+        this.currentBoss = null;
+        this.lastBossScore = 0;
         
         // Initialize typing statistics
         this.typingStats = {
@@ -378,6 +434,130 @@ class F16TypingGame {
     }
     
     destroyEnemy(enemy) {
+        // Handle boss enemies differently
+        if (enemy.isBoss) {
+            // Reduce boss health instead of destroying immediately
+            enemy.health--;
+            
+            // Update boss health bar
+            const healthFill = enemy.element.querySelector('.boss-health-fill');
+            if (healthFill) {
+                healthFill.style.width = `${(enemy.health / enemy.maxHealth) * 100}%`;
+                healthFill.style.backgroundColor = enemy.health <= 1 ? '#FF0000' : '#00FF00';
+            }
+            
+            // Only destroy boss when health reaches 0
+            if (enemy.health <= 0) {
+                // Create big explosion
+                this.createExplosion(enemy.x + 50, enemy.y + 40);
+                this.createExplosion(enemy.x + 20, enemy.y + 60);
+                this.createExplosion(enemy.x + 70, enemy.y + 20);
+                
+                // Boss defeated - give huge bonus
+                const bossBonus = 500;
+                this.score += bossBonus;
+                
+                // Show boss defeated notification
+                this.showBossDefeatedNotification(bossBonus);
+                
+                // Remove boss
+                const index = this.enemies.indexOf(enemy);
+                if (index > -1) {
+                    this.enemies.splice(index, 1);
+                    enemy.element.remove();
+                }
+                
+                // Clear current boss reference
+                this.currentBoss = null;
+            } else {
+                // Boss hit but not destroyed - show damage effect
+                enemy.element.style.animation = 'bossHit 0.5s ease-out';
+                setTimeout(() => {
+                    if (enemy.element) {
+                        enemy.element.style.animation = '';
+                    }
+                }, 500);
+            }
+            
+            // Track statistics for boss hits
+            this.typingStats.correctWords++;
+            this.typingStats.totalWords++;
+            this.typingStats.correctCharacters += enemy.word.length;
+            this.typingStats.totalCharacters += enemy.word.length;
+            
+            this.updateUI();
+            this.updateStatsDisplay();
+            return;
+        }
+        
+        // Handle multi-health regular enemies (like Heavy Bombers)
+        if (enemy.health && enemy.health > 1) {
+            // Reduce enemy health instead of destroying immediately
+            enemy.health--;
+            
+            // Update enemy health bar
+            const healthFill = enemy.element.querySelector('.enemy-health-fill');
+            if (healthFill) {
+                healthFill.style.width = `${(enemy.health / enemy.maxHealth) * 100}%`;
+                if (enemy.health <= 1) {
+                    healthFill.style.backgroundColor = '#FF0000';
+                }
+            }
+            
+            // Only destroy when health reaches 0
+            if (enemy.health <= 0) {
+                // Create explosion
+                this.createExplosion(enemy.x + 35, enemy.y + 25);
+                
+                // Remove enemy
+                const index = this.enemies.indexOf(enemy);
+                if (index > -1) {
+                    this.enemies.splice(index, 1);
+                    enemy.element.remove();
+                }
+            } else {
+                // Show damage effect
+                enemy.element.style.animation = 'enemyHit 0.3s ease-out';
+                setTimeout(() => {
+                    if (enemy.element) {
+                        enemy.element.style.animation = '';
+                    }
+                }, 300);
+            }
+            
+            // Track statistics for multi-health enemy hits
+            this.typingStats.correctWords++;
+            this.typingStats.totalWords++;
+            this.typingStats.correctCharacters += enemy.word.length;
+            this.typingStats.totalCharacters += enemy.word.length;
+            
+            // Calculate score with enemy type bonus (only when fully destroyed)
+            if (enemy.health <= 0) {
+                const basePoints = enemy.points || (enemy.word.length * 10);
+                const comboBonus = this.calculateComboBonus();
+                const totalPoints = basePoints + comboBonus;
+                this.score += totalPoints;
+                
+                // Increase combo only when enemy is fully destroyed
+                this.combo++;
+                if (this.combo > this.maxCombo) {
+                    this.maxCombo = this.combo;
+                }
+                this.updateComboMultiplier();
+                this.adaptiveSettings.wordsCompleted++;
+                
+                // Show combo notification if combo is significant
+                if (this.combo >= 3) {
+                    this.showComboNotification(this.combo, comboBonus);
+                }
+            }
+            
+            this.updateUI();
+            this.updateStatsDisplay();
+            return;
+        }
+        
+        // Regular single-health enemy destruction logic
         // Create explosion
         this.createExplosion(enemy.x + 35, enemy.y + 25);
         
@@ -409,8 +589,8 @@ class F16TypingGame {
             enemy.element.remove();
         }
         
-        // Calculate score with combo bonus
-        const basePoints = enemy.word.length * 10;
+        // Calculate score with enemy type bonus and combo bonus
+        const basePoints = enemy.points || (enemy.word.length * 10);
         const comboBonus = this.calculateComboBonus();
         const totalPoints = basePoints + comboBonus;
         
@@ -429,9 +609,19 @@ class F16TypingGame {
         this.updateUI();
         this.updateStatsDisplay();
         
-        // Check for level up
-        if (this.score > 0 && this.score % 500 === 0) {
+        // Check for level up and boss spawning
+        const previousScore = this.score - totalPoints;
+        const currentLevel = Math.floor(this.score / 500);
+        const previousLevel = Math.floor(previousScore / 500);
+        
+        if (currentLevel > previousLevel) {
             this.levelUp();
+            
+            // Spawn boss when crossing 500-point thresholds (but not if already have a boss)
+            if (!this.currentBoss) {
+                this.spawnBoss();
+                this.lastBossScore = this.score;
+            }
         }
     }
     
@@ -483,9 +673,11 @@ class F16TypingGame {
     }
     
     spawnEnemy() {
-        let word;
+        // Select enemy type based on weighted random selection
+        const enemyType = this.selectEnemyType();
         
-        // Select word based on current category and adaptive difficulty
+        // Select word from enemy type's word list or fallback to custom categories
+        let word;
         if (this.currentWordCategory === 'programming') {
             word = this.getCustomWord('programming');
         } else if (this.currentWordCategory === 'science') {
@@ -493,30 +685,121 @@ class F16TypingGame {
         } else if (this.currentWordCategory === 'custom' && this.customWordLists.custom.length > 0) {
             word = this.getCustomWord('custom');
         } else {
-            // Use adaptive word selection for default category
-            word = this.getAdaptiveWord();
+            // Use enemy type specific words
+            word = enemyType.words[Math.floor(Math.random() * enemyType.words.length)];
         }
         
         const enemy = {
             word: word,
             x: this.gameArea.offsetWidth,
             y: Math.random() * (this.gameArea.offsetHeight - 100) + 50,
-            element: document.createElement('div')
+            element: document.createElement('div'),
+            type: enemyType.name,
+            speed: enemyType.speed,
+            health: enemyType.health,
+            maxHealth: enemyType.health,
+            size: enemyType.size,
+            color: enemyType.color,
+            points: enemyType.points,
+            special: enemyType.special || null,
+            stealthVisible: true, // For stealth enemies
+            stealthTimer: 0
         };
         
-        // Create enemy element
-        enemy.element.className = 'enemy';
+        // Create enemy element with type-specific styling
+        enemy.element.className = `enemy enemy-${enemyType.name.toLowerCase().replace(' ', '-')}`;
         enemy.element.style.left = enemy.x + 'px';
         enemy.element.style.top = enemy.y + 'px';
+        enemy.element.style.transform = `scaleX(-1) rotate(-2deg) scale(${enemy.size})`;
+        enemy.element.style.filter = `drop-shadow(0 0 12px ${enemy.color}) drop-shadow(0 4px 12px #0008)`;
+        
+        // Add health bar for multi-health enemies
+        if (enemy.health > 1) {
+            const healthBar = document.createElement('div');
+            healthBar.className = 'enemy-health-bar';
+            const healthFill = document.createElement('div');
+            healthFill.className = 'enemy-health-fill';
+            healthFill.style.width = '100%';
+            healthFill.style.backgroundColor = enemy.color;
+            healthBar.appendChild(healthFill);
+            enemy.element.appendChild(healthBar);
+        }
         
         // Create word element
         const wordElement = document.createElement('div');
         wordElement.className = 'enemy-word';
+        wordElement.style.borderColor = enemy.color;
         wordElement.textContent = word;
         enemy.element.appendChild(wordElement);
         
         this.enemiesContainer.appendChild(enemy.element);
         this.enemies.push(enemy);
+    }
+    
+    selectEnemyType() {
+        // Weighted random selection based on enemy spawn weights
+        const types = Object.values(this.enemyTypes);
+        const totalWeight = types.reduce((sum, type) => sum + type.spawnWeight, 0);
+        let random = Math.random() * totalWeight;
+        
+        for (const type of types) {
+            random -= type.spawnWeight;
+            if (random <= 0) {
+                return type;
+            }
+        }
+        
+        // Fallback to standard if something goes wrong
+        return this.enemyTypes.standard;
+    }
+    
+    spawnBoss() {
+        // Boss words are longer and more challenging
+        const bossWords = [
+            'DESTRUCTION', 'ANNIHILATION', 'DEVASTATION', 'OBLITERATION',
+            'COMMANDER', 'BATTLEFIELD', 'OVERWHELMING', 'UNSTOPPABLE',
+            'LEGENDARY', 'INVINCIBLE', 'FORMIDABLE', 'CATASTROPHIC',
+            'EXTRAORDINARY', 'PHENOMENAL', 'UNCONQUERABLE', 'MAGNIFICENT'
+        ];
+        
+        const word = bossWords[Math.floor(Math.random() * bossWords.length)];
+        
+        const boss = {
+            word: word,
+            x: this.gameArea.offsetWidth,
+            y: this.gameArea.offsetHeight / 2 - 50, // Center vertically
+            element: document.createElement('div'),
+            isBoss: true,
+            health: 3, // Boss takes 3 hits to destroy
+            maxHealth: 3
+        };
+        
+        // Create boss element
+        boss.element.className = 'enemy boss';
+        boss.element.style.left = boss.x + 'px';
+        boss.element.style.top = boss.y + 'px';
+        
+        // Create word element
+        const wordElement = document.createElement('div');
+        wordElement.className = 'enemy-word boss-word';
+        wordElement.textContent = word;
+        boss.element.appendChild(wordElement);
+        
+        // Create health bar
+        const healthBar = document.createElement('div');
+        healthBar.className = 'boss-health-bar';
+        const healthFill = document.createElement('div');
+        healthFill.className = 'boss-health-fill';
+        healthFill.style.width = '100%';
+        healthBar.appendChild(healthFill);
+        boss.element.appendChild(healthBar);
+        
+        this.enemiesContainer.appendChild(boss.element);
+        this.enemies.push(boss);
+        this.currentBoss = boss;
+        
+        // Show boss warning
+        this.showBossWarning();
     }
     
     startGameLoop() {
@@ -530,13 +813,41 @@ class F16TypingGame {
     updateEnemies() {
         for (let i = this.enemies.length - 1; i >= 0; i--) {
             const enemy = this.enemies[i];
-            enemy.x -= this.enemySpeed;
+            
+            // Handle stealth enemy visibility
+            if (enemy.special === 'stealth') {
+                enemy.stealthTimer += 16; // Add frame time
+                
+                // Toggle visibility every 2 seconds
+                if (enemy.stealthTimer >= 2000) {
+                    enemy.stealthVisible = !enemy.stealthVisible;
+                    enemy.element.style.opacity = enemy.stealthVisible ? '1' : '0.3';
+                    enemy.stealthTimer = 0;
+                }
+            }
+            
+            // Calculate movement speed based on enemy type
+            let speed;
+            if (enemy.isBoss) {
+                speed = this.enemySpeed * 0.5;
+            } else if (enemy.speed) {
+                speed = this.enemySpeed * enemy.speed;
+            } else {
+                speed = this.enemySpeed;
+            }
+            
+            enemy.x -= speed;
             enemy.element.style.left = enemy.x + 'px';
             
             // Check if enemy reached the left side (player loses life)
             if (enemy.x < -100) {
                 this.enemies.splice(i, 1);
                 enemy.element.remove();
+                
+                // If it was a boss, clear boss reference
+                if (enemy.isBoss) {
+                    this.currentBoss = null;
+                }
                 
                 this.lives--;
                 this.updateUI();
@@ -797,6 +1108,78 @@ class F16TypingGame {
                 notification.parentNode.removeChild(notification);
             }
         }, 2000);
+    }
+
+    showBossWarning() {
+        // Create boss warning notification
+        const warning = document.createElement('div');
+        warning.className = 'boss-warning';
+        warning.innerHTML = `
+            <div class="boss-warning-text">⚠️ BOSS INCOMING! ⚠️</div>
+            <div class="boss-warning-subtitle">Prepare for battle!</div>
+        `;
+        
+        // Position it in the center of the screen
+        warning.style.position = 'absolute';
+        warning.style.left = '50%';
+        warning.style.top = '50%';
+        warning.style.transform = 'translate(-50%, -50%)';
+        warning.style.zIndex = '50';
+        warning.style.color = '#FF0000';
+        warning.style.fontWeight = 'bold';
+        warning.style.fontSize = '36px';
+        warning.style.textAlign = 'center';
+        warning.style.textShadow = '3px 3px 6px rgba(0,0,0,0.9)';
+        warning.style.backgroundColor = 'rgba(255, 0, 0, 0.2)';
+        warning.style.border = '3px solid #FF0000';
+        warning.style.borderRadius = '15px';
+        warning.style.padding = '20px';
+        warning.style.animation = 'bossWarning 3s ease-out forwards';
+        
+        this.gameArea.appendChild(warning);
+        
+        // Remove warning after animation
+        setTimeout(() => {
+            if (warning.parentNode) {
+                warning.parentNode.removeChild(warning);
+            }
+        }, 3000);
+    }
+
+    showBossDefeatedNotification(bonus) {
+        // Create boss defeated notification
+        const notification = document.createElement('div');
+        notification.className = 'boss-defeated';
+        notification.innerHTML = `
+            <div class="boss-defeated-text">🏆 BOSS DEFEATED! 🏆</div>
+            <div class="boss-defeated-bonus">+${bonus} BONUS POINTS!</div>
+        `;
+        
+        // Position it in the center of the screen
+        notification.style.position = 'absolute';
+        notification.style.left = '50%';
+        notification.style.top = '40%';
+        notification.style.transform = 'translate(-50%, -50%)';
+        notification.style.zIndex = '50';
+        notification.style.color = '#FFD700';
+        notification.style.fontWeight = 'bold';
+        notification.style.fontSize = '42px';
+        notification.style.textAlign = 'center';
+        notification.style.textShadow = '3px 3px 6px rgba(0,0,0,0.9)';
+        notification.style.backgroundColor = 'rgba(255, 215, 0, 0.2)';
+        notification.style.border = '3px solid #FFD700';
+        notification.style.borderRadius = '15px';
+        notification.style.padding = '25px';
+        notification.style.animation = 'bossDefeated 4s ease-out forwards';
+        
+        this.gameArea.appendChild(notification);
+        
+        // Remove notification after animation
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 4000);
     }
 
     // Progress Save System Methods
