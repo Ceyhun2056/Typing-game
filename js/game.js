@@ -12,7 +12,7 @@ class F16TypingGame {
         
         // Game settings
         this.enemySpeed = 1;
-        this.spawnRate = 2000; // milliseconds
+        this.spawnRate = 4000; // milliseconds (increased from 2000)
         this.maxEnemies = 5;
         
         // Boss System
@@ -1561,3 +1561,4 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM loaded, initializing game...');
     new F16TypingGame();
 });
+
