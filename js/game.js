@@ -12,7 +12,7 @@ class F16TypingGame {
         
         // Game settings
         this.enemySpeed = 1;
-        this.spawnRate = 4000; // milliseconds (increased from 2000)
+    this.spawnRate = 1500; // milliseconds (faster spawn rate)
         this.maxEnemies = 5;
         
         // Boss System
@@ -673,8 +673,9 @@ class F16TypingGame {
     }
     
     spawnEnemy() {
-        // Select enemy type based on weighted random selection
-        const enemyType = this.selectEnemyType();
+    // Select enemy type based on weighted random selection
+    const enemyType = this.selectEnemyType();
+    console.log('Spawning enemy:', enemyType.name);
         
         // Select word from enemy type's word list or fallback to custom categories
         let word;
