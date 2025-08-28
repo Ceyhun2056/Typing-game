@@ -178,40 +178,88 @@ body::before {
 }
 
 /* Enemy Type Variants */
-.enemy-scout {
-    animation: scoutDash 0.8s infinite linear;
+.enemy-fast {
+    animation: fastDash 0.6s infinite linear;
+    filter: drop-shadow(0 0 15px #00ffff) drop-shadow(0 4px 12px #0008);
 }
 
-@keyframes scoutDash {
-    0%, 100% { transform: scaleX(-1) rotate(-2deg) scale(0.7) translateY(0); }
-    25% { transform: scaleX(-1) rotate(-4deg) scale(0.7) translateY(-3px); }
-    50% { transform: scaleX(-1) rotate(0deg) scale(0.7) translateY(0); }
-    75% { transform: scaleX(-1) rotate(-4deg) scale(0.7) translateY(3px); }
+@keyframes fastDash {
+    0%, 100% { transform: scaleX(-1) rotate(-2deg) scale(0.8) translateY(0); }
+    25% { transform: scaleX(-1) rotate(-4deg) scale(0.8) translateY(-4px); }
+    50% { transform: scaleX(-1) rotate(0deg) scale(0.8) translateY(0); }
+    75% { transform: scaleX(-1) rotate(-4deg) scale(0.8) translateY(4px); }
 }
 
-.enemy-heavy-bomber {
-    animation: heavyFloat 2s infinite ease-in-out;
+.enemy-tank {
+    animation: tankFloat 2.5s infinite ease-in-out;
+    filter: drop-shadow(0 0 18px #ff6600) drop-shadow(0 4px 12px #0008);
 }
 
-@keyframes heavyFloat {
-    0%, 100% { transform: scaleX(-1) rotate(-2deg) scale(1.4) translateY(0); }
-    50% { transform: scaleX(-1) rotate(-2deg) scale(1.4) translateY(-5px); }
+@keyframes tankFloat {
+    0%, 100% { transform: scaleX(-1) rotate(-2deg) scale(1.5) translateY(0); }
+    50% { transform: scaleX(-1) rotate(-2deg) scale(1.5) translateY(-6px); }
 }
 
-.enemy-stealth-fighter {
+.enemy-stealth {
     animation: stealthShimmer 1.5s infinite ease-in-out;
+    filter: drop-shadow(0 0 20px #9933ff) drop-shadow(0 4px 12px #0008);
     transition: opacity 0.5s ease;
 }
 
 @keyframes stealthShimmer {
     0%, 100% { 
         transform: scaleX(-1) rotate(-2deg) scale(0.9) translateY(0);
-        filter: drop-shadow(0 0 12px #424242) drop-shadow(0 4px 12px #0008) brightness(1);
+        filter: drop-shadow(0 0 20px #9933ff) drop-shadow(0 4px 12px #0008) brightness(1);
     }
     50% { 
         transform: scaleX(-1) rotate(-2deg) scale(0.9) translateY(-2px);
-        filter: drop-shadow(0 0 20px #424242) drop-shadow(0 4px 12px #0008) brightness(1.3);
+        filter: drop-shadow(0 0 25px #9933ff) drop-shadow(0 4px 12px #0008) brightness(1.3);
     }
+}
+
+.enemy-normal {
+    animation: enemyShake 1.2s infinite linear;
+    filter: drop-shadow(0 0 12px #ff1744) drop-shadow(0 4px 12px #0008);
+}
+
+.enemy-boss {
+    animation: bossFloat 3s infinite ease-in-out;
+    filter: drop-shadow(0 0 25px #ff0000) drop-shadow(0 8px 20px #0008);
+    transform: scaleX(-1) rotate(-2deg) scale(1.8);
+}
+
+@keyframes bossFloat {
+    0%, 100% { transform: scaleX(-1) rotate(-2deg) scale(1.8) translateY(0); }
+    50% { transform: scaleX(-1) rotate(-2deg) scale(1.8) translateY(-8px); }
+}
+
+.boss-word {
+    font-size: 18px !important;
+    font-weight: bold !important;
+    background: linear-gradient(45deg, #ff0000, #ff6600) !important;
+    color: white !important;
+    border-color: #ff6600 !important;
+    padding: 8px 15px !important;
+}
+
+.boss-health-bar {
+    position: absolute;
+    top: -55px;
+    left: 50%;
+    transform: translateX(-50%) scaleX(-1);
+    width: 80px;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.3);
+    border: 2px solid #fff;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.boss-health-fill {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, #ff0000 0%, #ffff00 50%, #00ff00 100%);
+    transition: width 0.3s ease, background-color 0.3s ease;
 }
 
 /* Enemy Health Bars */
@@ -239,6 +287,46 @@ body::before {
 @keyframes enemyHit {
     0%, 100% { filter: brightness(1); }
     50% { filter: brightness(2) drop-shadow(0 0 15px #ffffff); }
+}
+
+/* Boss Warning Animation */
+@keyframes bossWarningPulse {
+    0%, 100% { 
+        transform: translate(-50%, -50%) scale(1);
+        box-shadow: 0 0 20px #ff0000;
+    }
+    50% { 
+        transform: translate(-50%, -50%) scale(1.1);
+        box-shadow: 0 0 40px #ff0000, 0 0 60px #ff6600;
+    }
+}
+
+/* Bonus Notification Animation */
+@keyframes slideInRight {
+    0% { 
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    100% { 
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Boss Defeated Animation */
+@keyframes bossDefeatedPulse {
+    0% { 
+        transform: translate(-50%, -50%) scale(0.5);
+        opacity: 0;
+    }
+    50% { 
+        transform: translate(-50%, -50%) scale(1.2);
+        opacity: 1;
+    }
+    100% { 
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+    }
 }
 
 /* Explosions */

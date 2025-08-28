@@ -42,6 +42,7 @@ class F16TypingGame {
         this.challengeMode = null; // 'speed', 'accuracy', null
         this.challengeTimer = 0;
         this.challengeScore = 0;
+        this.bossSpawned = false; // Track if boss has been spawned for current score threshold
         this.saveData = {
             highScore: 0,
             maxLevel: 1,
@@ -478,6 +479,19 @@ class F16TypingGame {
     }
     
     destroyEnemy(enemy) {
+        // Handle boss defeat
+        if (enemy.isBoss) {
+            this.defeatBoss(enemy);
+            return;
+        }
+        
+        // Handle multi-health enemies
+        if (enemy.health > 1) {
+            enemy.health--;
+            this.updateEnemyHealth(enemy);
+            return;
+        }
+        
         // Create explosion
         this.createExplosion(enemy.x + 35, enemy.y + 25);
         
@@ -506,12 +520,170 @@ class F16TypingGame {
             enemy.element.remove();
         }
         
-        // Calculate score
+        // Calculate score with type bonuses
         const basePoints = enemy.word.length * 10;
-        this.score += basePoints;
+        let bonusMultiplier = 1;
+        
+        // Apply type-specific bonuses
+        if (enemy.type === 'fast') {
+            bonusMultiplier = 1.5; // Fast enemies give 50% bonus
+        } else if (enemy.type === 'tank') {
+            bonusMultiplier = 2.0; // Tank enemies give 100% bonus
+        } else if (enemy.type === 'stealth') {
+            bonusMultiplier = 1.8; // Stealth enemies give 80% bonus
+        }
+        
+        const finalPoints = Math.round(basePoints * bonusMultiplier);
+        this.score += finalPoints;
+        
+        // Show bonus notification for special enemies
+        if (enemy.type !== 'normal') {
+            this.showBonusNotification(enemy.type, finalPoints);
+        }
         
         this.updateUI();
         this.updateStatsDisplay();
+    }
+    
+    defeatBoss(enemy) {
+        // Create multiple explosions for boss
+        for (let i = 0; i < 3; i++) {
+            setTimeout(() => {
+                this.createExplosion(
+                    enemy.x + 35 + (Math.random() - 0.5) * 50,
+                    enemy.y + 25 + (Math.random() - 0.5) * 50
+                );
+            }, i * 200);
+        }
+        
+        // Increase combo significantly
+        this.combo += 5;
+        if (this.combo > this.maxCombo) {
+            this.maxCombo = this.combo;
+        }
+        
+        // Track typing statistics
+        this.typingStats.correctWords++;
+        this.typingStats.totalWords++;
+        this.typingStats.correctCharacters += enemy.word.length;
+        this.typingStats.totalCharacters += enemy.word.length;
+        this.adaptiveSettings.wordsCompleted++;
+        
+        // Update challenge score if in challenge mode
+        if (this.challengeMode) {
+            this.challengeScore += 3; // Boss gives 3 points in challenges
+        }
+        
+        // Remove boss
+        const index = this.enemies.indexOf(enemy);
+        if (index > -1) {
+            this.enemies.splice(index, 1);
+            enemy.element.remove();
+        }
+        
+        // Calculate boss score (much higher)
+        const bossPoints = enemy.word.length * 50; // 5x normal points
+        this.score += bossPoints;
+        
+        // Reset boss spawn flag
+        this.bossSpawned = false;
+        
+        // Show boss defeated notification
+        this.showBossDefeatedNotification(bossPoints);
+        
+        this.updateUI();
+        this.updateStatsDisplay();
+    }
+    
+    updateEnemyHealth(enemy) {
+        if (enemy.healthBar && enemy.healthFill) {
+            const healthPercent = (enemy.health / enemy.maxHealth) * 100;
+            enemy.healthFill.style.width = healthPercent + '%';
+            
+            // Change color based on health
+            if (healthPercent > 60) {
+                enemy.healthFill.style.backgroundColor = '#00ff00';
+            } else if (healthPercent > 30) {
+                enemy.healthFill.style.backgroundColor = '#ffff00';
+            } else {
+                enemy.healthFill.style.backgroundColor = '#ff0000';
+            }
+        }
+    }
+    
+    showBonusNotification(enemyType, points) {
+        const notification = document.createElement('div');
+        notification.className = 'bonus-notification';
+        
+        let message = '';
+        let color = '#00ff00';
+        
+        switch (enemyType) {
+            case 'fast':
+                message = `⚡ FAST ENEMY! +${points} pts`;
+                color = '#00ffff';
+                break;
+            case 'tank':
+                message = `🛡️ TANK ENEMY! +${points} pts`;
+                color = '#ff6600';
+                break;
+            case 'stealth':
+                message = `👻 STEALTH ENEMY! +${points} pts`;
+                color = '#9933ff';
+                break;
+        }
+        
+        notification.textContent = message;
+        notification.style.cssText = `
+            position: fixed;
+            top: 20%;
+            right: 20px;
+            background: ${color};
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-weight: bold;
+            z-index: 1000;
+            animation: slideInRight 0.5s ease-out;
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Remove notification after 2 seconds
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 2000);
+    }
+    
+    showBossDefeatedNotification(points) {
+        const notification = document.createElement('div');
+        notification.className = 'boss-defeated-notification';
+        notification.textContent = `🎉 BOSS DEFEATED! +${points} pts`;
+        notification.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(45deg, #ff6600, #ffcc00);
+            color: white;
+            padding: 20px 40px;
+            border-radius: 10px;
+            font-size: 20px;
+            font-weight: bold;
+            z-index: 1000;
+            animation: bossDefeatedPulse 0.5s ease-out;
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Remove notification after 3 seconds
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 3000);
     }
     
     createExplosion(x, y) {
@@ -554,6 +726,16 @@ class F16TypingGame {
             return;
         }
         
+        // Check if we should spawn a boss (every 500 points)
+        if (this.score > 0 && this.score % 500 === 0 && !this.bossSpawned) {
+            this.spawnBoss();
+            this.bossSpawned = true;
+            return;
+        }
+        
+        // Determine enemy type based on score and random chance
+        const enemyType = this.determineEnemyType();
+        
         // Create enemy object with DOM element
         const word = this.getAdaptiveWord();
 
@@ -562,16 +744,17 @@ class F16TypingGame {
             x: this.gameArea.clientWidth + 50, // Start from right side of screen
             y: Math.random() * (this.gameArea.clientHeight - 100) + 50, // Random vertical position
             element: document.createElement('div'),
-            speed: 1.5 + Math.random() * 1.5, // pixels per frame
-            health: 1,
-            maxHealth: 1,
+            speed: enemyType.speed,
+            health: enemyType.health,
+            maxHealth: enemyType.health,
             isBoss: false,
-            special: null,
+            type: enemyType.name,
+            special: enemyType.special,
             stealthVisible: true,
             stealthTimer: 0
         };
 
-        enemyObj.element.className = 'enemy';
+        enemyObj.element.className = `enemy ${enemyType.className}`;
 
         // Create word element as child
         const wordDiv = document.createElement('div');
@@ -586,6 +769,131 @@ class F16TypingGame {
         // Add to DOM and list
         this.enemiesContainer.appendChild(enemyObj.element);
         this.enemies.push(enemyObj);
+    }
+    
+    determineEnemyType() {
+        const baseSpeed = 1.5;
+        const baseHealth = 1;
+        
+        // Get random number for type selection
+        const rand = Math.random();
+        
+        if (rand < 0.1) { // 10% chance for fast enemy
+            return {
+                name: 'fast',
+                className: 'enemy-fast',
+                speed: baseSpeed * 2.5,
+                health: baseHealth,
+                special: 'speed'
+            };
+        } else if (rand < 0.2) { // 10% chance for tank enemy
+            return {
+                name: 'tank',
+                className: 'enemy-tank',
+                speed: baseSpeed * 0.7,
+                health: baseHealth * 3,
+                special: 'health'
+            };
+        } else if (rand < 0.25) { // 5% chance for stealth enemy
+            return {
+                name: 'stealth',
+                className: 'enemy-stealth',
+                speed: baseSpeed * 1.8,
+                health: baseHealth,
+                special: 'stealth'
+            };
+        } else { // 75% chance for normal enemy
+            return {
+                name: 'normal',
+                className: 'enemy-normal',
+                speed: baseSpeed + Math.random() * 1.5,
+                health: baseHealth,
+                special: null
+            };
+        }
+    }
+    
+    spawnBoss() {
+        // Create boss enemy
+        const bossWord = this.getAdaptiveWord();
+        const bossObj = {
+            word: bossWord,
+            x: this.gameArea.clientWidth + 50,
+            y: Math.random() * (this.gameArea.clientHeight - 150) + 75,
+            element: document.createElement('div'),
+            speed: 1.0, // Boss moves slower
+            health: 5,
+            maxHealth: 5,
+            isBoss: true,
+            type: 'boss',
+            special: 'boss',
+            stealthVisible: true,
+            stealthTimer: 0
+        };
+
+        bossObj.element.className = 'enemy enemy-boss';
+        
+        // Create boss word element
+        const wordDiv = document.createElement('div');
+        wordDiv.className = 'enemy-word boss-word';
+        wordDiv.textContent = bossWord;
+        bossObj.element.appendChild(wordDiv);
+        
+        // Create health bar for boss
+        const healthBar = document.createElement('div');
+        healthBar.className = 'boss-health-bar';
+        const healthFill = document.createElement('div');
+        healthFill.className = 'boss-health-fill';
+        healthFill.style.width = '100%';
+        healthBar.appendChild(healthFill);
+        bossObj.element.appendChild(healthBar);
+        
+        // Store health bar reference
+        bossObj.healthBar = healthBar;
+        bossObj.healthFill = healthFill;
+
+        // Position boss
+        bossObj.element.style.left = bossObj.x + 'px';
+        bossObj.element.style.top = bossObj.y + 'px';
+
+        // Add to DOM and list
+        this.enemiesContainer.appendChild(bossObj.element);
+        this.enemies.push(bossObj);
+        
+        // Show boss warning
+        this.showBossWarning();
+        
+        console.log('Boss spawned!', bossWord);
+    }
+    
+    showBossWarning() {
+        // Create boss warning notification
+        const warning = document.createElement('div');
+        warning.className = 'boss-warning';
+        warning.textContent = '🚨 BOSS INCOMING! 🚨';
+        warning.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(45deg, #ff0000, #ff6600);
+            color: white;
+            padding: 20px 40px;
+            border-radius: 10px;
+            font-size: 24px;
+            font-weight: bold;
+            z-index: 1000;
+            animation: bossWarningPulse 1s infinite;
+        `;
+        
+        document.body.appendChild(warning);
+        
+        // Remove warning after 3 seconds
+        setTimeout(() => {
+            if (warning.parentNode) {
+                warning.parentNode.removeChild(warning);
+            }
+        }, 3000);
     }
     
     startGameLoop() {
@@ -782,6 +1090,7 @@ class F16TypingGame {
         this.combo = 0;
         this.maxCombo = 0;
         this.comboMultiplier = 1;
+        this.bossSpawned = false; // Reset boss spawn flag
         
         // Initialize typing stats
         this.typingStats = {
@@ -987,6 +1296,9 @@ class F16TypingGame {
         // Clear arrays
         this.enemies = [];
         this.explosions = [];
+        
+        // Reset boss spawn flag
+        this.bossSpawned = false;
         
         // Clear any existing intervals
         if (this.spawnInterval) {
