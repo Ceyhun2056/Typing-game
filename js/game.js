@@ -493,6 +493,11 @@ class F16TypingGame {
         this.typingStats.totalCharacters += enemy.word.length;
         this.adaptiveSettings.wordsCompleted++;
         
+        // Update challenge score if in challenge mode
+        if (this.challengeMode) {
+            this.challengeScore++;
+        }
+        
         // Remove enemy
         const index = this.enemies.indexOf(enemy);
         if (index > -1) {
@@ -579,7 +584,7 @@ class F16TypingGame {
     
     startGameLoop() {
         this.gameLoop = setInterval(() => {
-            if (this.gameState === 'playing') {
+            if (this.gameState === 'playing' || this.gameState === 'challenge') {
                 this.updateEnemies();
             }
         }, 16); // ~60 FPS
@@ -758,6 +763,31 @@ class F16TypingGame {
         this.challengeScore = 0;
         this.gameState = 'challenge';
         
+        // Reset game state for challenge
+        this.score = 0;
+        this.lives = 3;
+        this.enemies = [];
+        this.explosions = [];
+        this.currentInput = '';
+        this.targetEnemy = null;
+        this.combo = 0;
+        this.maxCombo = 0;
+        this.comboMultiplier = 1;
+        
+        // Initialize typing stats
+        this.typingStats = {
+            totalWords: 0,
+            correctWords: 0,
+            totalCharacters: 0,
+            correctCharacters: 0,
+            startTime: Date.now(),
+            endTime: null,
+            wpm: 0,
+            accuracy: 100,
+            mistypedLetters: {},
+            mistypedWords: {}
+        };
+        
         this.hideAllMenus();
         this.showChallengeUI();
         this.startChallengeCountdown();
@@ -770,6 +800,30 @@ class F16TypingGame {
         this.gameState = 'challenge';
         this.lives = 1;
         
+        // Reset game state for challenge
+        this.score = 0;
+        this.enemies = [];
+        this.explosions = [];
+        this.currentInput = '';
+        this.targetEnemy = null;
+        this.combo = 0;
+        this.maxCombo = 0;
+        this.comboMultiplier = 1;
+        
+        // Initialize typing stats
+        this.typingStats = {
+            totalWords: 0,
+            correctWords: 0,
+            totalCharacters: 0,
+            correctCharacters: 0,
+            startTime: Date.now(),
+            endTime: null,
+            wpm: 0,
+            accuracy: 100,
+            mistypedLetters: {},
+            mistypedWords: {}
+        };
+        
         this.hideAllMenus();
         this.showChallengeUI();
         this.startSpawning();
@@ -777,6 +831,12 @@ class F16TypingGame {
     }
     
     startChallengeCountdown() {
+        // Start spawning and game loop immediately for speed challenge
+        if (this.challengeMode === 'speed') {
+            this.startSpawning();
+            this.startGameLoop();
+        }
+        
         const challengeInterval = setInterval(() => {
             this.challengeTimer--;
             this.updateChallengeUI();
@@ -786,11 +846,6 @@ class F16TypingGame {
                 this.endChallenge();
             }
         }, 1000);
-        
-        if (this.challengeMode === 'speed') {
-            this.startSpawning();
-            this.startGameLoop();
-        }
     }
     
     endChallenge() {
@@ -896,6 +951,10 @@ class F16TypingGame {
         if (challengeScoreElement) {
             challengeScoreElement.textContent = `Words: ${this.challengeScore}`;
         }
+        
+        // Also update the main UI for challenge mode
+        this.updateUI();
+        this.updateStatsDisplay();
     }
     
     // Stop all game intervals
