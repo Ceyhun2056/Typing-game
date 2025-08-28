@@ -90,6 +90,7 @@ class F16TypingGame {
         this.bosses = [];
         this.currentBoss = null;
         this.lastBossScore = 0;
+        this.bossSpawned = false; // Reset boss spawn flag
         this.typingStats = {
             totalWords: 0,
             correctWords: 0,
@@ -110,7 +111,7 @@ class F16TypingGame {
         this.updateUI();
         this.startSpawning();
         this.startGameLoop();
-        console.log('Game started');
+        console.log('Game started with score reset to 0');
 
         
         // Combo/Streak System
@@ -1007,6 +1008,11 @@ class F16TypingGame {
     endGame() {
         this.gameState = 'gameOver';
         
+        // Store final score before any resets
+        const finalScore = this.score;
+        const finalLives = this.lives;
+        const finalCombo = this.maxCombo;
+        
         // Clear intervals
         if (this.spawnInterval) clearInterval(this.spawnInterval);
         if (this.gameLoop) clearInterval(this.gameLoop);
@@ -1014,7 +1020,83 @@ class F16TypingGame {
         // Show game over screen
         this.gameOver.classList.remove('hidden');
         
-        console.log('Game over');
+        // Update the game over screen with final stats
+        this.updateGameOverScreen(finalScore, finalLives, finalCombo);
+        
+        console.log('Game over - Final Score:', finalScore, 'Final Lives:', finalLives, 'Max Combo:', finalCombo);
+    }
+    
+    updateGameOverScreen(finalScore, finalLives, finalCombo) {
+        // Find the game over screen elements
+        const gameOverScreen = document.getElementById('gameOver');
+        
+        // Update the main final score display
+        const finalScoreElement = document.getElementById('finalScore');
+        if (finalScoreElement) {
+            finalScoreElement.textContent = `Final Score: ${finalScore}`;
+        }
+        
+        // Update the final stats section
+        const finalStatsElement = document.getElementById('finalStats');
+        if (finalStatsElement) {
+            let statsHTML = `
+                <div class="final-stats-content">
+                    <div class="stat-row">
+                        <span>Final Score:</span>
+                        <span class="stat-value">${finalScore}</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>Lives Remaining:</span>
+                        <span class="stat-value">${finalLives}</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>Max Combo:</span>
+                        <span class="stat-value">${finalCombo}x</span>
+                    </div>
+            `;
+            
+            // Add typing stats if available
+            if (this.typingStats.startTime) {
+                const timeElapsed = (Date.now() - this.typingStats.startTime) / 1000 / 60; // minutes
+                const wpm = Math.round(this.typingStats.correctWords / timeElapsed) || 0;
+                const accuracy = this.typingStats.totalCharacters > 0 ? 
+                    Math.round((this.typingStats.correctCharacters / this.typingStats.totalCharacters) * 100) : 100;
+                
+                statsHTML += `
+                    <div class="stat-row">
+                        <span>Words Typed:</span>
+                        <span class="stat-value">${this.typingStats.correctWords}</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>WPM:</span>
+                        <span class="stat-value">${wpm}</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>Accuracy:</span>
+                        <span class="stat-value">${accuracy}%</span>
+                    </div>
+                `;
+            }
+            
+            statsHTML += '</div>';
+            finalStatsElement.innerHTML = statsHTML;
+        }
+        
+        // Check for new high score
+        if (finalScore > this.saveData.highScore) {
+            this.saveData.highScore = finalScore;
+            this.saveProgress();
+            
+            // Add new record notification
+            if (finalStatsElement) {
+                const newRecordDiv = document.createElement('div');
+                newRecordDiv.className = 'new-record';
+                newRecordDiv.textContent = '🎉 NEW HIGH SCORE! 🎉';
+                finalStatsElement.appendChild(newRecordDiv);
+            }
+        }
+        
+        console.log('Game over screen updated with final score:', finalScore);
     }
     
     updateUI() {
@@ -1026,6 +1108,11 @@ class F16TypingGame {
             this.currentWordElement.style.display = 'block';
         } else {
             this.currentWordElement.style.display = 'none';
+        }
+        
+        // Debug logging for score updates
+        if (this.gameState === 'playing' || this.gameState === 'challenge') {
+            console.log('UI Updated - Score:', this.score, 'Lives:', this.lives);
         }
     }
     
