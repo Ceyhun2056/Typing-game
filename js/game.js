@@ -72,6 +72,9 @@ class F16TypingGame {
     }
 
     startGame() {
+        // Clear all existing enemies and explosions from DOM
+        this.clearAllGameElements();
+        
         this.gameState = 'playing';
         this.score = 0;
         this.lives = 3;
@@ -321,10 +324,8 @@ class F16TypingGame {
     }
     
     restartGame() {
-        // Clear all enemies and explosions
-        this.enemies.forEach(enemy => enemy.element.remove());
-        this.explosions.forEach(explosion => explosion.element.remove());
-        
+        // Clear all game elements and restart
+        this.clearAllGameElements();
         this.startGame();
     }
     
@@ -548,6 +549,11 @@ class F16TypingGame {
     }
 
     spawnEnemy() {
+        // Don't spawn enemies if game is not active
+        if (this.gameState !== 'playing' && this.gameState !== 'challenge') {
+            return;
+        }
+        
         // Create enemy object with DOM element
         const word = this.getAdaptiveWord();
 
@@ -758,6 +764,9 @@ class F16TypingGame {
     
     // Challenge methods
     startSpeedChallenge() {
+        // Clear all existing enemies and explosions from DOM
+        this.clearAllGameElements();
+        
         this.challengeMode = 'speed';
         this.challengeTimer = 30;
         this.challengeScore = 0;
@@ -794,6 +803,9 @@ class F16TypingGame {
     }
     
     startAccuracyChallenge() {
+        // Clear all existing enemies and explosions from DOM
+        this.clearAllGameElements();
+        
         this.challengeMode = 'accuracy';
         this.challengeTimer = 0;
         this.challengeScore = 0;
@@ -914,6 +926,9 @@ class F16TypingGame {
     }
     
     showMainMenu() {
+        // Clear all game elements when returning to main menu
+        this.clearAllGameElements();
+        this.gameState = 'menu';
         this.hideAllMenus();
         this.gameMenu.classList.remove('hidden');
     }
@@ -955,6 +970,33 @@ class F16TypingGame {
         // Also update the main UI for challenge mode
         this.updateUI();
         this.updateStatsDisplay();
+    }
+    
+    // Clear all game elements from DOM
+    clearAllGameElements() {
+        // Clear all enemies from DOM
+        if (this.enemiesContainer) {
+            this.enemiesContainer.innerHTML = '';
+        }
+        
+        // Clear all explosions from DOM
+        if (this.explosionsContainer) {
+            this.explosionsContainer.innerHTML = '';
+        }
+        
+        // Clear arrays
+        this.enemies = [];
+        this.explosions = [];
+        
+        // Clear any existing intervals
+        if (this.spawnInterval) {
+            clearInterval(this.spawnInterval);
+            this.spawnInterval = null;
+        }
+        if (this.gameLoop) {
+            clearInterval(this.gameLoop);
+            this.gameLoop = null;
+        }
     }
     
     // Stop all game intervals
