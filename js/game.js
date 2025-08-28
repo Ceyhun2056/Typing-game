@@ -489,6 +489,7 @@ class F16TypingGame {
         if (enemy.health > 1) {
             enemy.health--;
             this.updateEnemyHealth(enemy);
+            console.log(`${enemy.type} enemy hit! Health remaining: ${enemy.health}/${enemy.maxHealth}`);
             return;
         }
         
@@ -540,6 +541,8 @@ class F16TypingGame {
         if (enemy.type !== 'normal') {
             this.showBonusNotification(enemy.type, finalPoints);
         }
+        
+        console.log(`Enemy destroyed! Type: ${enemy.type}, Points: ${finalPoints}, Score: ${this.score}`);
         
         this.updateUI();
         this.updateStatsDisplay();
@@ -714,8 +717,11 @@ class F16TypingGame {
         // If spawning is already active, prevent duplication
         if (this.spawnInterval) clearInterval(this.spawnInterval);
 
+        console.log('Starting enemy spawning...');
+        
         // Spawn enemies at a fixed interval
         this.spawnInterval = setInterval(() => {
+            console.log('Spawning enemy... Current score:', this.score);
             this.spawnEnemy();
         }, 2000); // Spawn every 2 seconds
     }
@@ -726,8 +732,8 @@ class F16TypingGame {
             return;
         }
         
-        // Check if we should spawn a boss (every 500 points)
-        if (this.score > 0 && this.score % 500 === 0 && !this.bossSpawned) {
+        // Check if we should spawn a boss (every 500 points, but not at 0)
+        if (this.shouldSpawnBoss()) {
             this.spawnBoss();
             this.bossSpawned = true;
             return;
@@ -762,6 +768,21 @@ class F16TypingGame {
         wordDiv.textContent = word;
         enemyObj.element.appendChild(wordDiv);
 
+        // Add health bar for tank enemies
+        if (enemyType.name === 'tank') {
+            const healthBar = document.createElement('div');
+            healthBar.className = 'enemy-health-bar';
+            const healthFill = document.createElement('div');
+            healthFill.className = 'enemy-health-fill';
+            healthFill.style.width = '100%';
+            healthBar.appendChild(healthFill);
+            enemyObj.element.appendChild(healthBar);
+            
+            // Store health bar reference
+            enemyObj.healthBar = healthBar;
+            enemyObj.healthFill = healthFill;
+        }
+
         // Position enemy
         enemyObj.element.style.left = enemyObj.x + 'px';
         enemyObj.element.style.top = enemyObj.y + 'px';
@@ -769,6 +790,8 @@ class F16TypingGame {
         // Add to DOM and list
         this.enemiesContainer.appendChild(enemyObj.element);
         this.enemies.push(enemyObj);
+        
+        console.log('Enemy spawned:', enemyType.name, 'with word:', word);
     }
     
     determineEnemyType() {
@@ -778,8 +801,10 @@ class F16TypingGame {
         // Get random number for type selection
         const rand = Math.random();
         
+        let enemyType;
+        
         if (rand < 0.1) { // 10% chance for fast enemy
-            return {
+            enemyType = {
                 name: 'fast',
                 className: 'enemy-fast',
                 speed: baseSpeed * 2.5,
@@ -787,7 +812,7 @@ class F16TypingGame {
                 special: 'speed'
             };
         } else if (rand < 0.2) { // 10% chance for tank enemy
-            return {
+            enemyType = {
                 name: 'tank',
                 className: 'enemy-tank',
                 speed: baseSpeed * 0.7,
@@ -795,7 +820,7 @@ class F16TypingGame {
                 special: 'health'
             };
         } else if (rand < 0.25) { // 5% chance for stealth enemy
-            return {
+            enemyType = {
                 name: 'stealth',
                 className: 'enemy-stealth',
                 speed: baseSpeed * 1.8,
@@ -803,7 +828,7 @@ class F16TypingGame {
                 special: 'stealth'
             };
         } else { // 75% chance for normal enemy
-            return {
+            enemyType = {
                 name: 'normal',
                 className: 'enemy-normal',
                 speed: baseSpeed + Math.random() * 1.5,
@@ -811,9 +836,29 @@ class F16TypingGame {
                 special: null
             };
         }
+        
+        console.log('Enemy type determined:', enemyType.name, 'Speed:', enemyType.speed, 'Health:', enemyType.health);
+        return enemyType;
+    }
+    
+    shouldSpawnBoss() {
+        // Spawn boss every 500 points, but not at 0
+        if (this.score < 500) return false;
+        if (this.bossSpawned) return false;
+        
+        // Check if we've reached a 500-point milestone
+        const lastBossScore = Math.floor(this.score / 500) * 500;
+        if (this.score >= lastBossScore && this.score < lastBossScore + 100) {
+            console.log('Boss spawn condition met! Score:', this.score, 'Last boss score:', lastBossScore);
+            return true;
+        }
+        
+        return false;
     }
     
     spawnBoss() {
+        console.log('Attempting to spawn boss...');
+        
         // Create boss enemy
         const bossWord = this.getAdaptiveWord();
         const bossObj = {
@@ -863,7 +908,7 @@ class F16TypingGame {
         // Show boss warning
         this.showBossWarning();
         
-        console.log('Boss spawned!', bossWord);
+        console.log('Boss spawned successfully!', bossWord, 'at position:', bossObj.x, bossObj.y);
     }
     
     showBossWarning() {
@@ -935,10 +980,24 @@ class F16TypingGame {
                     continue;
                 }
 
-                // Remove enemies that go off the left side of the screen
+                // Check if enemy crossed the left side (missed the player)
                 if (newLeft < -100) {
+                    // Enemy missed - decrease lives and remove
+                    if (!enemy.isBoss) { // Don't decrease lives for boss misses
+                        this.lives--;
+                        console.log('Enemy missed! Lives remaining:', this.lives);
+                    }
+                    
                     enemy.element.remove();
                     this.enemies.splice(i, 1);
+                    
+                    // Check if game over
+                    if (this.lives <= 0) {
+                        this.endGame();
+                        return;
+                    }
+                    
+                    this.updateUI();
                     continue;
                 }
             }
